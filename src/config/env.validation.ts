@@ -1,22 +1,13 @@
-import Joi from 'joi';
+/* eslint-disable prettier/prettier */
+import * as Joi from 'joi';
 
-// Define a safe configuration template to avoid unsafe member access warnings
-const validationSchemaMap = {
+export const envValidationSchema = Joi.object({
   PORT: Joi.number().default(3000),
-  NODE_ENV: Joi.string()
-    .valid('development', 'production', 'test')
-    .default('development'),
+  NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
   MONGODB_URI: Joi.string().required(),
-  ELASTICSEARCH_NODE: Joi.string().required(),
-  ELASTICSEARCH_USERNAME: Joi.string().required(),
-  ELASTICSEARCH_PASSWORD: Joi.string().required(),
-  RABBITMQ_URL: Joi.string().required(),
-  REDIS_HOST: Joi.string().required(),
+  REDIS_HOST: Joi.string().default('localhost'),
   REDIS_PORT: Joi.number().default(6379),
-  STRIPE_SECRET_KEY: Joi.string().required(),
-  STRIPE_WEBHOOK_SECRET: Joi.string().required(),
-  JWT_SECRET: Joi.string().required(),
-};
-
-export const envValidationSchema: Joi.ObjectSchema =
-  Joi.object(validationSchemaMap);
+  ELASTICSEARCH_NODE: Joi.string().default('http://localhost:9200'),
+  ELASTICSEARCH_USERNAME: Joi.string().default('elastic'),
+  ELASTICSEARCH_PASSWORD: Joi.string().default('hgm_elastic_password'),
+});

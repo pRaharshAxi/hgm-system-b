@@ -1,23 +1,15 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
-import { CacheModule } from '@nestjs/cache-manager';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
-import { envValidationSchema } from './config/env.validation';
-import { SearchModule } from './modules/search/search.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { SearchController } from './search.controller';
+import { SearchService } from './search.service';
+import { ListingIndexService } from './listing-index.service';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      validationSchema: envValidationSchema,
-    }),
-    MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://localhost:27017/hgm_db'),
-    CacheModule.register({
-      isGlobal: true,
-      ttl: 60000,
-    }),
     ElasticsearchModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -29,7 +21,9 @@ import { SearchModule } from './modules/search/search.module';
       }),
       inject: [ConfigService],
     }),
-    SearchModule,
   ],
+  controllers: [SearchController],
+  providers: [SearchService, ListingIndexService],
+  exports: [SearchService, ListingIndexService, ElasticsearchModule],
 })
-export class AppModule {}
+export class SearchModule {}
