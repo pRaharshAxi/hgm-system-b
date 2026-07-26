@@ -6,6 +6,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
 import { envValidationSchema } from './config/env.validation';
 import { SearchModule } from './modules/search/search.module';
+import { MessagingModule } from './messaging/messaging.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { SearchModule } from './modules/search/search.module';
       inject: [ConfigService],
     }),
     SearchModule,
+    MessagingModule,
   ],
 })
 export class AppModule {}

@@ -28,25 +28,29 @@ export class GeoService {
           // MongoDB GeoJSON order: [longitude, latitude]
           location: {
             type: 'Point',
-            coordinates: [lng, lat],
+            coordinates: [Number(lng), Number(lat)],
           },
           ...(categories ? { categories } : {}),
         },
       },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: 'after' },
     );
   }
 
   async findNearby(lat: number, lng: number, radiusKm: number = 10, category?: string) {
+    const parsedLat = Number(lat);
+    const parsedLng = Number(lng);
+    const parsedRadius = radiusKm !== undefined && !isNaN(Number(radiusKm)) ? Number(radiusKm) : 10;
+
     const pipeline: any[] = [
       {
         $geoNear: {
           near: {
             type: 'Point',
-            coordinates: [lng, lat], // [longitude, latitude]
+            coordinates: [parsedLng, parsedLat], // [longitude, latitude]
           },
           distanceField: 'distanceMeters',
-          maxDistance: radiusKm * 1000,
+          maxDistance: parsedRadius * 1000,
           spherical: true,
         },
       },
@@ -97,7 +101,7 @@ export class GeoService {
           activeListingCount,
         },
       },
-      { new: true },
+      { returnDocument: 'after' },
     );
   }
 }
