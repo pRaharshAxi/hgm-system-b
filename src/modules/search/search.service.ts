@@ -13,10 +13,26 @@ export class SearchService {
   ) {}
 
   async search(dto: SearchQueryDto) {
-    const { q, category, priceMin, priceMax, page = 1, limit = 20, sort = SortOption.RELEVANCE } = dto;
-    const cacheKey = `search:${q || ''}:${category || ''}:${priceMin ?? ''}:${priceMax ?? ''}:${page}:${sort}`;
+    const {
+      q,
+      category,
+      priceMin,
+      priceMax,
+      page = 1,
+      limit = 20,
+      sort = SortOption.RELEVANCE,
+      lat,
+      lng,
+      radius = 10,
+    } = dto;
 
-    // 1. Check Redis Cache
+    // Normalize category to uppercase
+    const normalizedCategory = category ? category.toUpperCase() : undefined;
+
+    // 1. DYNAMIC CACHE KEY (Includes Geo Parameters)
+    const cacheKey = `search:${q || ''}:${normalizedCategory || ''}:${priceMin ?? ''}:${priceMax ?? ''}:${page}:${sort}:${lat ?? ''}:${lng ?? ''}:${radius}`;
+
+    // Check Redis Cache
     const cachedData = await this.cacheManager.get(cacheKey);
     if (cachedData) {
       return {
@@ -39,8 +55,8 @@ export class SearchService {
       });
     }
 
-    if (category) {
-      filter.push({ term: { category } });
+    if (normalizedCategory) {
+      filter.push({ term: { category: normalizedCategory } });
     }
 
     if (priceMin !== undefined || priceMax !== undefined) {
@@ -48,6 +64,19 @@ export class SearchService {
       if (priceMin !== undefined) range.gte = priceMin;
       if (priceMax !== undefined) range.lte = priceMax;
       filter.push({ range: { price: range } });
+    }
+
+    // GEO-DISTANCE FILTERING
+    if (lat !== undefined && lng !== undefined) {
+      filter.push({
+        geo_distance: {
+          distance: `${radius}km`,
+          location: {
+            lat: Number(lat),
+            lon: Number(lng),
+          },
+        },
+      });
     }
 
     // 3. Build Sorting
@@ -91,7 +120,7 @@ export class SearchService {
       aggregations: result.aggregations,
     };
 
-    // 5. Cache Payload in Redis (120s TTL)
+    // 5. Cache Payload in Redis
     await this.cacheManager.set(cacheKey, responsePayload, 120000);
 
     return {

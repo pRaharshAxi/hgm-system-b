@@ -55,6 +55,7 @@ export class ListingIndexService implements OnModuleInit {
     return this.elasticsearchService.index({
       index: 'hgm_listings',
       id: payload.id,
+      refresh: true,
       document: {
         ...payload,
         location:

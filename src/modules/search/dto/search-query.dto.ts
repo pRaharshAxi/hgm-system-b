@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { IsOptional, IsString, IsNumber, Min, Max, IsEnum } from 'class-validator';
+import { IsOptional, IsString, IsNumber, Min, Max, IsEnum, IsLatitude, IsLongitude } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum SortOption {
@@ -46,4 +46,24 @@ export class SearchQueryDto {
   @IsOptional()
   @IsEnum(SortOption)
   sort?: SortOption = SortOption.RELEVANCE;
+
+  // Added Geo-location query fields
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @IsLatitude()
+  lat?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @IsLongitude()
+  lng?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0.1)
+  @Max(50)
+  radius?: number = 10;
 }
